@@ -26,8 +26,8 @@
                 },
                 boundsMultiplier: 1.0 / 2.0,
 
-                minSpeed: 1.2,
-                maxSpeed: 3.5,
+                minSpeed: 0,
+                maxSpeed: 0.2,
 
                 separationRadius: 7,
                 separationMultiplier: 1.0 / 5.0,
@@ -155,7 +155,7 @@
         boidRenderer.render();
 
         // Optional, just rotating the bounds to emphasize the 3D nature of the scene
-        scene.rotation.y += THREE.Math.degToRad(0.2);
+//        scene.rotation.y += THREE.Math.degToRad(0.2);
 
         renderer.render(scene, camera);
 

@@ -1,3 +1,4 @@
+/* global THREE */
 function BoidSimulator(renderer, numBoids, state) {
 
     // Since we use square textures, that must be a power of two in size, check the number
@@ -87,7 +88,7 @@ vec3 clampVel(in vec3 v) {
   return newVel;
 }
 
-vec3 all(in vec3 currentVelocity, in vec3 currentPosition) {
+vec3 all2(in vec3 currentVelocity, in vec3 currentPosition) {
   vec2 currentIndex = vUv.xy * texDim;
   const float width=texDim;
   const float height=texDim;
@@ -132,7 +133,8 @@ vec3 all(in vec3 currentVelocity, in vec3 currentPosition) {
     alignmentVelocity /= alignmentCount;
     final += clampVel((alignmentVelocity - currentVelocity) * uAlignmentMultiplier);
   }
-  return final;
+//  return final;
+  return currentVelocity;
 }
 
 vec3 bound(in vec3 pos) {
@@ -176,7 +178,7 @@ void main() {
   vec3 currentPosition = texture2D(posTex, vUv.xy).xyz;
   vec3 currentVelocity = texture2D(velTex, vUv.xy).xyz;
 
-  vec3 aa = all(currentVelocity, currentPosition);
+  vec3 aa = all2(currentVelocity, currentPosition);
   vec3 newVel = oldVel + 0.2 * aa;
   vec3 b = bound(currentPosition + newVel);
   newVel += b;
@@ -294,7 +296,7 @@ BoidSimulator.prototype = {
     * @param {number} state.alignmentRadius
     * @param {number} state.alignmentMultiplier
     * @param {number} state.stepSize;
-    * state.bounds: 
+    * state.bounds:
     */
     _initState: function(state) {
         this.state = state;
@@ -335,7 +337,10 @@ BoidSimulator.prototype = {
 
     _renderTextureToTarget: function(texture, target) {
         this._ptMaterial.uniforms.ptTex.value = texture;
-        this.renderer.render(this._ptScene, this._ptCamera, target);
+        this.renderer.setRenderTarget(target);
+        this.renderer.render(this._ptScene, this._ptCamera);
+        this.renderer.setRenderTarget(null);
+        this.renderer.clear();
     },
 
     step: function() {
@@ -353,30 +358,42 @@ BoidSimulator.prototype = {
 
     _stepVelocities: function() {
         if (this.tick) {
-            this._velMaterial.uniforms.velTex.value = this._vel1;
-            this._velMaterial.uniforms.posTex.value = this._pos2;
-            this.renderer.render(this._velScene, this._ptCamera, this._vel2);
+            this._velMaterial.uniforms.velTex.value = this._vel1.texture;
+            this._velMaterial.uniforms.posTex.value = this._pos2.texture;
+            this.renderer.setRenderTarget(this._vel2);
+            this.renderer.render(this._velScene, this._ptCamera);
+            this.renderer.setRenderTarget(null);
+            this.renderer.clear();
             this.currentVelocities = this._vel2;
         }
         else {
-            this._velMaterial.uniforms.velTex.value = this._vel2;
-            this._velMaterial.uniforms.posTex.value = this._pos1;
-            this.renderer.render(this._velScene, this._ptCamera, this._vel1);
+            this._velMaterial.uniforms.velTex.value = this._vel2.texture;
+            this._velMaterial.uniforms.posTex.value = this._pos1.texture;
+            this.renderer.setRenderTarget(this._vel1);
+            this.renderer.render(this._velScene, this._ptCamera);
+            this.renderer.setRenderTarget(null);
+            this.renderer.clear();
             this.currentVelocities = this._vel1;
         }
     },
 
     _stepPositions: function() {
         if (this.tick) {
-            this._posMaterial.uniforms.posTex.value = this._pos1;
-            this._posMaterial.uniforms.velTex.value = this._vel2;
-            this.renderer.render(this._posScene, this._ptCamera, this._pos2);
+            this._posMaterial.uniforms.posTex.value = this._pos1.texture;
+            this._posMaterial.uniforms.velTex.value = this._vel2.texture;
+            this.renderer.setRenderTarget(this._pos2);
+            this.renderer.render(this._posScene, this._ptCamera);
+            this.renderer.setRenderTarget(null);
+            this.renderer.clear();
             this.currentPositions = this._pos2;
         }
         else {
-            this._posMaterial.uniforms.posTex.value = this._pos2;
-            this._posMaterial.uniforms.velTex.value = this._vel1;
-            this.renderer.render(this._posScene, this._ptCamera, this._pos1);
+            this._posMaterial.uniforms.posTex.value = this._pos2.texture;
+            this._posMaterial.uniforms.velTex.value = this._vel1.texture;
+            this.renderer.setRenderTarget(this._pos1);
+            this.renderer.render(this._posScene, this._ptCamera);
+            this.renderer.setRenderTarget(null);
+            this.renderer.clear();
             this.currentPositions = this._pos1;
         }
     },
